@@ -7,5 +7,5 @@ import java.math.BigInteger;
  * Generate all round keys
  **/
 public interface RoundKeysGenerator {
-    BigInteger[] generate(byte[] cipherKey);
+    long[] generate(byte[] cipherKey);
 }
