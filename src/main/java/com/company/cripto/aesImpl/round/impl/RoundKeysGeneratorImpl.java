@@ -36,7 +36,6 @@ public final class RoundKeysGeneratorImpl implements RoundKeysGenerator {
         return getUnevenDigit(fMinusOne.multiply(twoDegree));
     }
 
-
     @Override
     public BigInteger[] generate(byte[] cipherKey) {
         if (cipherKey.length != cipherKeyLength / Byte.SIZE) {
