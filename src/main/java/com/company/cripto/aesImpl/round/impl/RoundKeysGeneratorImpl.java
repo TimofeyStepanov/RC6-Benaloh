@@ -7,8 +7,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public final class RoundKeysGeneratorImpl implements RoundKeysGenerator {
-    private final BigInteger[] s;
-
     private final int wordLength;
     private final int roundNumber;
     private final int cipherKeyLength;
@@ -17,14 +15,6 @@ public final class RoundKeysGeneratorImpl implements RoundKeysGenerator {
         this.wordLength = wordLength;
         this.roundNumber = roundNumber;
         this.cipherKeyLength = cipherKeyLength.bitsNumber;
-
-        BigInteger q = getQ();
-
-        s = new BigInteger[2 * roundNumber + 3];
-        s[0] = getP();
-        for (int i = 1; i < s.length; i++) {
-            s[i] = s[i - 1].add(q);
-        }
     }
 
     private BigInteger getP() {
@@ -48,13 +38,20 @@ public final class RoundKeysGeneratorImpl implements RoundKeysGenerator {
 
 
     @Override
-    public byte[][] generate(byte[] cipherKey) {
+    public BigInteger[] generate(byte[] cipherKey) {
         if (cipherKey.length != cipherKeyLength / Byte.SIZE) {
             throw new IllegalArgumentException(String.format(
                     "Wrong length of cipher key! Required %d, provided %d",
                     cipherKeyLength / Byte.SIZE,
                     cipherKey.length
             ));
+        }
+
+        BigInteger[] s = new BigInteger[2 * roundNumber + 4];
+        s[0] = getP();
+        BigInteger q = getQ();
+        for (int i = 1; i < s.length; i++) {
+            s[i] = s[i - 1].add(q);
         }
 
         BigInteger[] words = translateByteArrayToWordArray(cipherKey);
@@ -72,7 +69,7 @@ public final class RoundKeysGeneratorImpl implements RoundKeysGenerator {
             i = (i + 1) % (2 * roundNumber + 4);
             j = (j + 1) % words.length;
         }
-        return new byte[0][0];
+        return s.clone();
     }
 
     private BigInteger[] translateByteArrayToWordArray(byte[] cipherKey) {
