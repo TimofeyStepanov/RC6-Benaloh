@@ -2,8 +2,6 @@ package com.company.cripto.aesImpl.algorithm.impl;
 
 import com.company.cripto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 import com.company.cripto.aesImpl.round.RoundKeysGenerator;
-import com.company.cripto.aesImpl.round.RoundTransformer;
-import com.company.cripto.aesImpl.round.impl.RoundKeysGeneratorImpl;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -25,11 +23,9 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
     private byte[] cipherKey;
 
     private final RoundKeysGenerator roundKeysGenerator;
-    private final RoundTransformer roundTransformer;
 
-    public RC6(RoundKeysGenerator roundKeysGenerator, RoundTransformer roundTransformer) {
+    public RC6(RoundKeysGenerator roundKeysGenerator) {
         this.roundKeysGenerator = roundKeysGenerator;
-        this.roundTransformer = roundTransformer;
     }
 
     @Override
@@ -40,7 +36,6 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
         BigInteger[] roundKeys = roundKeysGenerator.generate(cipherKey);
         for (int i = 0; i < ROUND_NUMBER; i++) {
             BigInteger roundKey = roundKeys[i];
-            inputBlock = roundTransformer.decode(inputBlock, roundKey, i == 0);
         }
         return inputBlock;
     }
@@ -53,7 +48,6 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
         BigInteger[] roundKeys = roundKeysGenerator.generate(cipherKey);
         for (int i = 0; i < ROUND_NUMBER; i++) {
             BigInteger roundKey = roundKeys[i];
-            inputBlock = roundTransformer.encode(inputBlock, roundKey, i == ROUND_NUMBER-1);
         }
         return inputBlock;
     }
