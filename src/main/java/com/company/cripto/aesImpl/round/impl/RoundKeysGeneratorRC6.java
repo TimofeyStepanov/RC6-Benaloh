@@ -2,10 +2,11 @@ package com.company.cripto.aesImpl.round.impl;
 
 import com.company.cripto.aesImpl.algorithm.impl.RC6;
 import com.company.cripto.aesImpl.round.RoundKeysGenerator;
-import com.google.common.primitives.Longs;
+import com.google.common.primitives.Ints;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 @Data
 public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
@@ -20,7 +21,7 @@ public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
     }
 
     @Override
-    public long[] generate(byte[] cipherKey) {
+    public int[] generate(byte[] cipherKey) {
         if (cipherKey.length != cipherKeyLength / Byte.SIZE) {
             throw new IllegalArgumentException(String.format(
                     "Wrong length of cipher key! Required %d, provided %d",
@@ -29,66 +30,70 @@ public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
             ));
         }
 
-        long[] s = new long[2 * roundNumber + 4];
+        int[] s = new int[2 * roundNumber + 4];
         s[0] = getP();
-        long q = getQ();
+        int q = getQ();
         for (int i = 1; i < s.length; i++) {
             s[i] = s[i - 1] + q;
         }
 
-        long[] words = translateByteArrayToWordArray(cipherKey);
+        int[] words = translateByteArrayToWordArray(cipherKey);
 
-        int iterationNumber = 3 * Math.max(words.length, 2 * roundNumber + 4);
+        int iterationNumber = 3 * Math.max(words.length, s.length);
         int i = 0;
         int j = 0;
 
-        long a = 0;
-        long b = 0;
-        for (int k = 1; k < iterationNumber; k++) {
+        int a = 0;
+        int b = 0;
+        for (int k = 0; k < iterationNumber; k++) {
             a = s[i] = leftCycleShift(s[i] + a + b, 3);
             b = words[j] = leftCycleShift(words[j] + a + b, a + b);
 
-            i = (i + 1) % (2 * roundNumber + 4);
+            i = (i + 1) % s.length;
             j = (j + 1) % words.length;
         }
         return s;
     }
 
-    private long getP() {
-        BigDecimal twoDegree = BigDecimal.valueOf(2L << wordLength);
-        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(Math.E - 2)));
+    private int getP() {
+        //BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
+        //return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(Math.E - 2)));
+        return 0xb7e15163;
     }
 
-    private long getUnevenDigit(BigDecimal p) {
-        long longP = p.longValue();
-        return (longP & 1) != 0 ? longP : longP + 1;
+    private int getUnevenDigit(BigDecimal p) {
+        //long longP = p.longValue();
+        //return (int) ((longP & 1) != 0 ? longP : longP + 1);
+        return 0;
     }
 
-    private long getQ() {
-        final double f = 1.6180339887498948482;
-        BigDecimal twoDegree = BigDecimal.valueOf(2L << wordLength);
-        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(f - 1)));
+    private int getQ() {
+//        final double f = 1.6180339887498948482;
+//        BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
+//        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(f - 1)));
+        return 0x9e3779b9;
     }
 
-    private long[] translateByteArrayToWordArray(byte[] cipherKey) {
-        long[] words = new long[cipherKey.length * Byte.SIZE / wordLength];
+    private int[] translateByteArrayToWordArray(byte[] cipherKey) {
+//        long[] translatedArray = new long[cipherKeyLength / wordLength];
+//        int wordLengthInBytes = wordLength / Byte.SIZE;
+//        for (int i = 0; i < translatedArray.length; i++) {
+//            int currentByte = i * wordLength / Byte.SIZE;
+//            translatedArray[i] = Ints.fromByteArray(Arrays.copyOfRange(cipherKey, currentByte, currentByte + wordLengthInBytes));
+//        }
+//        return translatedArray;
 
-        int wordLengthInByte = wordLength / Byte.SIZE;
-        byte[] word = new byte[wordLengthInByte];
-
-        int i = 0;
-        int j = 0;
-        while (i < cipherKey.length) {
-            System.arraycopy(cipherKey, i, word, 0, wordLengthInByte);
-            words[j] = Longs.fromByteArray(word);
-
-            j++;
-            i += wordLengthInByte;
+        int[] translated = new int[cipherKeyLength / wordLength];
+        int index = 0;
+        for(int i=0; i < translated.length; i++) {
+            translated[i] = (cipherKey[index++] & 0xFF)| ((cipherKey[index++]& 0xFF)<<8)
+                    | ((cipherKey[index++]& 0xFF)<<16)|((cipherKey[index++]& 0xFF)<<24);
         }
-        return words;
+
+        return translated;
     }
 
-    private long leftCycleShift(long digit, long shift) {
-        return (digit << shift) | (digit >> (Long.SIZE - shift));
+    private int leftCycleShift(int digit, int shift) {
+        return (digit << shift) | (digit >> (wordLength - shift));
     }
 }

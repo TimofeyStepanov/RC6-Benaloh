@@ -4,13 +4,13 @@ import java.nio.ByteBuffer;
 
 public class Main {
     public static void main(String[] args) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 * Long.BYTES);
-        byteBuffer.putLong(1);
-        byteBuffer.putLong(2);
+        long digit = 1L << 35;
+        digit += 1;
+        digit += 4;
 
-        byte[] array = byteBuffer.array();
-        for (byte el : array) {
-            System.out.println(el);
-        }
+        int translated = (int)(digit & ((1L << Integer.SIZE) - 1));
+        System.out.println(translated);
+
+        System.out.println((int)digit);
     }
 }
