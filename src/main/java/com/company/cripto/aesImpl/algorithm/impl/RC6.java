@@ -1,10 +1,10 @@
 package com.company.cripto.aesImpl.algorithm.impl;
 
 import com.company.cripto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
-import com.company.cripto.aesImpl.round.RoundKeysGenerator;
-import com.company.cripto.aesImpl.round.impl.RoundKeysGeneratorRC6;
-import com.google.common.primitives.Ints;
+import com.company.cripto.aesImpl.round.RoundKeysGeneratorRC6;
+import com.company.cripto.aesImpl.round.impl.RoundKeysGeneratorImpl;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -22,11 +22,11 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
         }
     }
 
-    public static RC6 getInstance(RoundKeysGenerator roundKeysGenerator) {
-        if (!(roundKeysGenerator instanceof RoundKeysGeneratorRC6)) {
+    public static RC6 getInstance(RoundKeysGeneratorRC6 roundKeysGenerator) {
+        if (!(roundKeysGenerator instanceof RoundKeysGeneratorImpl)) {
             throw new IllegalArgumentException("Wrong key generator!");
         }
-        if (((RoundKeysGeneratorRC6) roundKeysGenerator).getRoundNumber() != ROUND_NUMBER) {
+        if (((RoundKeysGeneratorImpl) roundKeysGenerator).getRoundNumber() != ROUND_NUMBER) {
             throw new IllegalStateException("Wrong round number!");
         }
         return new RC6(roundKeysGenerator);
@@ -34,11 +34,11 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
 
     private byte[] cipherKey;
     private final int wordLength;
-    private final RoundKeysGenerator roundKeysGenerator;
+    private final RoundKeysGeneratorRC6 roundKeysGenerator;
 
-    private RC6(RoundKeysGenerator roundKeysGenerator) {
+    private RC6(RoundKeysGeneratorRC6 roundKeysGenerator) {
         this.roundKeysGenerator = roundKeysGenerator;
-        this.wordLength = ((RoundKeysGeneratorRC6) roundKeysGenerator).getWordLength();
+        this.wordLength = roundKeysGenerator.getWordLength();
     }
 
     @Override
@@ -72,8 +72,7 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
         translatedInputArray[2] = c;
         translatedInputArray[3] = d;
 
-        translateIntArrayToByteArray(translatedInputArray, inputBlock);
-        return inputBlock;
+        return translateIntArrayToByteArray(translatedInputArray);
     }
 
     private void checkArgs(byte[] inputBlock) {
@@ -86,33 +85,43 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
     }
 
     int[] translateInputByteArrayIntArray(byte[] array) {
-//        int[] translatedArray = new int[OPEN_TEXT_BLOCK_LENGTH / wordLength];
-//        int wordLengthInBytes = wordLength / Byte.SIZE;
-//        for (int i = 0; i < translatedArray.length; i++) {
-//            int currentByte = i * wordLength / Byte.SIZE;
-//            translatedArray[i] = Ints.fromByteArray(Arrays.copyOfRange(array, currentByte, currentByte + wordLengthInBytes));
-//        }
-//        return translatedArray;
+        int[] translatedArray = new int[OPEN_TEXT_BLOCK_LENGTH / wordLength];
+        int wordLengthInBytes = wordLength / Byte.SIZE;
+        for (int i = 0; i < translatedArray.length; i++) {
+            int currentByte = i * wordLengthInBytes;
 
-        int[] translated = new int[OPEN_TEXT_BLOCK_LENGTH / wordLength];
-        int index = 0;
-        for(int i=0; i < translated.length; i++) {
-            translated[i] = (array[index++] & 0xFF)
-                    | ((array[index++] & 0xFF) << 8)
-                    | ((array[index++] & 0xFF) << 16)
-                    | ((array[index++] & 0xFF) << 24);
+            byte[] toTranslate = Arrays.copyOfRange(array, currentByte, currentByte + wordLengthInBytes);
+            for (int j = 0; j < toTranslate.length / 2; j++) {
+                byte tmp = toTranslate[j];
+                toTranslate[j] = toTranslate[toTranslate.length - 1 - j];
+                toTranslate[toTranslate.length - 1 - j] = tmp;
+            }
+
+            translatedArray[i] = ByteBuffer.wrap(toTranslate).getInt();
         }
-        return translated;
+        return translatedArray;
+
+//        int[] translated = new int[OPEN_TEXT_BLOCK_LENGTH / wordLength];
+//        int index = 0;
+//        for(int i=0; i < translated.length; i++) {
+//            translated[i] = (array[index++] & 0xFF)
+//                    | ((array[index++] & 0xFF) << 8)
+//                    | ((array[index++] & 0xFF) << 16)
+//                    | ((array[index++] & 0xFF) << 24);
+//        }
+//        return translated;
     }
 
     private int leftCycleShift(int digit, int shift) {
         return (digit << shift) | (digit >>> (wordLength - shift));
     }
 
-     void translateIntArrayToByteArray(int[] src, byte[] dest) {
+    byte[] translateIntArrayToByteArray(int[] src) {
+        byte[] dest = new byte[src.length * Integer.SIZE / Byte.SIZE];
         for(int i = 0;i < dest.length;i++){
             dest[i] = (byte)((src[i/4] >>> (i % 4)*8) & 0xff);
         }
+        return dest;
 //        int outputArrayPtr = 0;
 //        for (int longDigit : src) {
 //            byte[] translatedLongDigit = Ints.toByteArray(longDigit);
@@ -158,8 +167,7 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
         translatedInputArray[2] = c;
         translatedInputArray[3] = d;
 
-        translateIntArrayToByteArray(translatedInputArray, inputBlock);
-        return inputBlock;
+        return translateIntArrayToByteArray(translatedInputArray);
     }
 
     private int rightCycleShift(int digit, int shift) {
@@ -173,6 +181,6 @@ public class RC6 implements SymmetricalBlockEncryptionAlgorithm {
 
     @Override
     public int getOpenTextBlockSizeInBytes() {
-        return OPEN_TEXT_BLOCK_LENGTH;
+        return OPEN_TEXT_BLOCK_LENGTH / Byte.SIZE;
     }
 }

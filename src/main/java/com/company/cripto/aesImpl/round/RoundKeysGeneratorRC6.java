@@ -1,11 +1,10 @@
 package com.company.cripto.aesImpl.round;
 
 
-import java.math.BigInteger;
-
 /**
  * Generate all round keys
  **/
-public interface RoundKeysGenerator {
+public interface RoundKeysGeneratorRC6 {
     int[] generate(byte[] cipherKey);
+    int getWordLength();
 }

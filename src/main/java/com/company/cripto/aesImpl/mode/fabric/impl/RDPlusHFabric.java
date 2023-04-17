@@ -16,13 +16,18 @@ public class RDPlusHFabric extends SymmetricalBlockCypherFabric {
         int positionOfInitialVector = ArgPosition.IV.position;
         int positionOfHash = ArgPosition.HASH.position;
         if (args.length <= positionOfInitialVector || args.length <= positionOfHash) {
-            throw new IllegalArgumentException("Wrong args length.");
+            throw new IllegalArgumentException("Wrong args length. No init vector");
         }
 
         byte[] IV = (byte[])(args[positionOfInitialVector]);
         if (IV.length != algorithm.getOpenTextBlockSizeInBytes()) {
             throw new IllegalArgumentException("Wrong IV size");
         }
-        return new RDPlusHCypher(algorithm,  IV, (byte[])args[positionOfHash]);
+
+        byte[] hash = (byte[])(args[positionOfHash]);
+        if (hash.length != algorithm.getOpenTextBlockSizeInBytes()) {
+            throw new IllegalArgumentException("Wrong hash size");
+        }
+        return new RDPlusHCypher(algorithm,  IV, hash);
     }
 }

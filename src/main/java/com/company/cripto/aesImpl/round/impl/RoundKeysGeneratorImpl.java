@@ -1,20 +1,18 @@
 package com.company.cripto.aesImpl.round.impl;
 
 import com.company.cripto.aesImpl.algorithm.impl.RC6;
-import com.company.cripto.aesImpl.round.RoundKeysGenerator;
-import com.google.common.primitives.Ints;
+import com.company.cripto.aesImpl.round.RoundKeysGeneratorRC6;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 @Data
-public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
+public final class RoundKeysGeneratorImpl implements RoundKeysGeneratorRC6 {
     private final int wordLength;
     private final int roundNumber;
     private final int cipherKeyLength;
 
-    public RoundKeysGeneratorRC6(int wordLength, int roundNumber, RC6.CipherKeyLength cipherKeyLength) {
+    public RoundKeysGeneratorImpl(int wordLength, int roundNumber, RC6.CipherKeyLength cipherKeyLength) {
         this.wordLength = wordLength;
         this.roundNumber = roundNumber;
         this.cipherKeyLength = cipherKeyLength.bitsNumber;
@@ -56,22 +54,19 @@ public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
     }
 
     private int getP() {
-        //BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
-        //return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(Math.E - 2)));
-        return 0xb7e15163;
+        BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
+        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(Math.E - 2)));
     }
 
     private int getUnevenDigit(BigDecimal p) {
-        //long longP = p.longValue();
-        //return (int) ((longP & 1) != 0 ? longP : longP + 1);
-        return 0;
+        long longP = p.longValue();
+        return (int) ((longP & 1) != 0 ? longP : longP + 1);
     }
 
     private int getQ() {
-//        final double f = 1.6180339887498948482;
-//        BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
-//        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(f - 1)));
-        return 0x9e3779b9;
+        final double f = 1.6180339887498948482;
+        BigDecimal twoDegree = BigDecimal.valueOf(1L << wordLength);
+        return getUnevenDigit(twoDegree.multiply(BigDecimal.valueOf(f - 1)));
     }
 
     private int[] translateByteArrayToWordArray(byte[] cipherKey) {
@@ -86,8 +81,10 @@ public final class RoundKeysGeneratorRC6 implements RoundKeysGenerator {
         int[] translated = new int[cipherKeyLength / wordLength];
         int index = 0;
         for(int i=0; i < translated.length; i++) {
-            translated[i] = (cipherKey[index++] & 0xFF)| ((cipherKey[index++]& 0xFF)<<8)
-                    | ((cipherKey[index++]& 0xFF)<<16)|((cipherKey[index++]& 0xFF)<<24);
+            translated[i] = (cipherKey[index++] & 0xFF)
+                    | ((cipherKey[index++]& 0xFF) << 8)
+                    | ((cipherKey[index++]& 0xFF) << 16)
+                    | ((cipherKey[index++]& 0xFF)  << 24);
         }
 
         return translated;
