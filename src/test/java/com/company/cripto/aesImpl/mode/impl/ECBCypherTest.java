@@ -101,9 +101,9 @@ class ECBCypherTest {
         }
 
         try (Cypher cipher = Cypher.build(cipherKey, SymmetricalBlockMode.ECB, rc6)) {
-            File one = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\1.jpg");
-            File two = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\2.jpg");
-            File three = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\3.jpg");
+            File one = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\1.mp4");
+            File two = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\2.mp4");
+            File three = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\3.mp4");
 
             two.delete();
             three.delete();
