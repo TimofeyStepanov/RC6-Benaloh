@@ -1,7 +1,7 @@
 package com.company.cripto.aesImpl.mode.impl;
 
 import com.company.cripto.aesImpl.Cypher;
-import com.company.cripto.aesImpl.algorithm.impl.RC6;
+import com.company.cripto.aesImpl.algorithm.impl.RC6Bits32;
 import com.company.cripto.aesImpl.mode.SymmetricalBlockMode;
 import com.company.cripto.aesImpl.round.impl.RoundKeysGeneratorImpl;
 import org.junit.jupiter.api.Test;
@@ -15,11 +15,11 @@ import java.util.concurrent.ThreadLocalRandom;
 class CBCCypherTest {
     @Test
     void checkText() {
-        RC6 rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_128)
+        RC6Bits32 rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_128)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_128.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_128.bitsNumber;
         byte[] cipherKey = new byte[keyLength / 8];
         for (int i = 0; i < cipherKey.length; i++) {
             cipherKey[i] = (byte) ThreadLocalRandom.current().nextInt();
@@ -50,11 +50,11 @@ class CBCCypherTest {
 
     @Test
     void checkImage() {
-        RC6 rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_192)
+        RC6Bits32 rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_192)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_192.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_192.bitsNumber;
         byte[] cipherKey = new byte[keyLength / 8];
         for (int i = 0; i < cipherKey.length; i++) {
             cipherKey[i] = (byte) ThreadLocalRandom.current().nextInt();
@@ -85,11 +85,11 @@ class CBCCypherTest {
 
     @Test
     void checkVideo() {
-        RC6 rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_256)
+        RC6Bits32 rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_256)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_256.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_256.bitsNumber;
         byte[] cipherKey = new byte[keyLength / 8];
         for (int i = 0; i < cipherKey.length; i++) {
             cipherKey[i] = (byte) ThreadLocalRandom.current().nextInt();

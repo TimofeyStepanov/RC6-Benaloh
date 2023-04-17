@@ -1,18 +1,18 @@
 package com.company.cripto.aesImpl.round.impl;
 
-import com.company.cripto.aesImpl.algorithm.impl.RC6;
-import com.company.cripto.aesImpl.round.RoundKeysGeneratorRC6;
+import com.company.cripto.aesImpl.algorithm.impl.RC6Bits32;
+import com.company.cripto.aesImpl.round.RoundKeysGenerator32BitsRC6;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
-public final class RoundKeysGeneratorImpl implements RoundKeysGeneratorRC6 {
+public final class RoundKeysGeneratorImpl implements RoundKeysGenerator32BitsRC6 {
     private final int wordLength;
     private final int roundNumber;
     private final int cipherKeyLength;
 
-    public RoundKeysGeneratorImpl(int wordLength, int roundNumber, RC6.CipherKeyLength cipherKeyLength) {
+    public RoundKeysGeneratorImpl(int wordLength, int roundNumber, RC6Bits32.CipherKeyLength cipherKeyLength) {
         this.wordLength = wordLength;
         this.roundNumber = roundNumber;
         this.cipherKeyLength = cipherKeyLength.bitsNumber;
@@ -70,24 +70,15 @@ public final class RoundKeysGeneratorImpl implements RoundKeysGeneratorRC6 {
     }
 
     private int[] translateByteArrayToWordArray(byte[] cipherKey) {
-//        long[] translatedArray = new long[cipherKeyLength / wordLength];
-//        int wordLengthInBytes = wordLength / Byte.SIZE;
-//        for (int i = 0; i < translatedArray.length; i++) {
-//            int currentByte = i * wordLength / Byte.SIZE;
-//            translatedArray[i] = Ints.fromByteArray(Arrays.copyOfRange(cipherKey, currentByte, currentByte + wordLengthInBytes));
-//        }
-//        return translatedArray;
-
-        int[] translated = new int[cipherKeyLength / wordLength];
+        int[] translatedArray = new int[cipherKeyLength / wordLength];
         int index = 0;
-        for(int i=0; i < translated.length; i++) {
-            translated[i] = (cipherKey[index++] & 0xFF)
-                    | ((cipherKey[index++]& 0xFF) << 8)
-                    | ((cipherKey[index++]& 0xFF) << 16)
-                    | ((cipherKey[index++]& 0xFF)  << 24);
+        for(int i = 0; i < translatedArray.length; i++) {
+            translatedArray[i] = (cipherKey[index++] & 0xFF)
+                    | ((cipherKey[index++] & 0xFF) << Byte.SIZE)
+                    | ((cipherKey[index++] & 0xFF) << Byte.SIZE * 2)
+                    | ((cipherKey[index++] & 0xFF) << Byte.SIZE * 3);
         }
-
-        return translated;
+        return translatedArray;
     }
 
     private int leftCycleShift(int digit, int shift) {

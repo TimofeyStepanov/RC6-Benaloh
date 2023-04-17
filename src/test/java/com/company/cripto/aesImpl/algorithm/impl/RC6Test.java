@@ -8,8 +8,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 
 class RC6Test {
-    RC6 rc6 = RC6.getInstance(
-            new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_128)
+    RC6Bits32 rc6 = RC6Bits32.getInstance(
+            new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_128)
     );
 
     @Test
@@ -32,11 +32,11 @@ class RC6Test {
 
     @Test
     void test128() {
-        rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_128)
+        rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_128)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_128.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_128.bitsNumber;
 
         for (int j = 0; j < 100000; j++) {
             byte[] input = new byte[128 / 8];
@@ -59,11 +59,11 @@ class RC6Test {
 
     @Test
     void test192() {
-        rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_192)
+        rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_192)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_192.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_192.bitsNumber;
 
         for (int j = 0; j < 100000; j++) {
             byte[] input = new byte[128 / 8];
@@ -86,11 +86,11 @@ class RC6Test {
 
     @Test
     void test256() {
-        rc6 = RC6.getInstance(
-                new RoundKeysGeneratorImpl(32, 20, RC6.CipherKeyLength.BIT_256)
+        rc6 = RC6Bits32.getInstance(
+                new RoundKeysGeneratorImpl(32, 20, RC6Bits32.CipherKeyLength.BIT_256)
         );
 
-        int keyLength = RC6.CipherKeyLength.BIT_256.bitsNumber;
+        int keyLength = RC6Bits32.CipherKeyLength.BIT_256.bitsNumber;
 
         for (int j = 0; j < 100000; j++) {
             byte[] input = new byte[128 / 8];
