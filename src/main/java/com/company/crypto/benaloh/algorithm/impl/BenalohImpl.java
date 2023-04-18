@@ -4,6 +4,7 @@ import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
 import com.company.crypto.benaloh.algorithm.Benaloh;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Slf4j
 public final class BenalohImpl extends Benaloh {
     private static final int MIN_LENGTH_OF_PRIME_DIGIT = 64;
 
@@ -20,7 +22,7 @@ public final class BenalohImpl extends Benaloh {
     private final OpenKeyGenerator openKeyGenerator;
     private final Random random = new Random();
 
-    private BenalohImpl(PrimeCheckerType type, double precision, int rLength) {
+    public BenalohImpl(PrimeCheckerType type, double precision, int rLength) {
         this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
         this.openKeyGenerator.generateOpenAndPrivateKey();
     }
@@ -33,12 +35,14 @@ public final class BenalohImpl extends Benaloh {
         }
 
         BigInteger message = translateInputByteArrayToBigInteger(array);
+        log.info("message to encode:" + message);
         BigInteger u = getRandomPositiveDigit();
 
         BigInteger y = openKey.getY();
         BigInteger yInDegree = y.modPow(message, openKey.getN());
         BigInteger uInDegree = u.modPow(openKey.getR(), openKey.getN());
         BigInteger encodedMessage = yInDegree.multiply(uInDegree).mod(openKey.getN());
+        log.info("message encoded:" + encodedMessage);
 
         byte[] arrayOfEncodedMessage = encodedMessage.toByteArray();
         reverseArray(arrayOfEncodedMessage);
@@ -79,8 +83,10 @@ public final class BenalohImpl extends Benaloh {
         BigInteger r = openKey.getR();
 
         BigInteger message = translateInputByteArrayToBigInteger(array);
+        log.info("message to decode:" + message);
         BigInteger a  = message.modPow(f.divide(r), n);
         BigInteger decodedMessage = getDiscreteLogarithm(privateKey.getX(), a, r, n);
+        log.info("decoded message:" + decodedMessage);
 
         byte[] arrayOfDecodedMessage = decodedMessage.toByteArray();
         reverseArray(arrayOfDecodedMessage);
@@ -92,6 +98,7 @@ public final class BenalohImpl extends Benaloh {
         while (!i.equals(r)) {
             BigInteger toCheck = x.modPow(i, n);
             if (toCheck.equals(a)) {
+                log.info("i:" + i);
                 return i;
             }
             i = i.add(BigInteger.ONE);
@@ -127,7 +134,7 @@ public final class BenalohImpl extends Benaloh {
             do {
                 p = generateRandomPrimeDigit(r);
                 pMinusOne = p.subtract(BigInteger.ONE);
-            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO));
+            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || !getGCD(r, pMinusOne.divide(r)).equals(BigInteger.ONE));
 
             BigInteger q;
             BigInteger qMinusOne;

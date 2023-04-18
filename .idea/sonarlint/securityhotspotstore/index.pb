@@ -29,12 +29,8 @@ p
 @.idea/libraries/Maven__org_apiguardian_apiguardian_api_1_1_2.xml,7\8\78b158d79d4a615b8bf614d6ee88675e25eba276
 j
 :.idea/libraries/Maven__org_opentest4j_opentest4j_1_2_0.xml,8\5\858474d8d215ec25f84b3be6f80418553ae8d1df
-7
-pom.xml,4\4\442292b8a7efeabbe4cc176709b833b1792140ec
 p
 @.idea/libraries/Maven__com_google_code_findbugs_jsr305_3_0_2.xml,7\c\7c5ad8ea3682abc1e44587c8e342f6032c50d9c8
-7
-RC6.iml,9\0\9083d741a79a342b8227f00643faa258847ac500
 S
 #src/main/java/com/company/Main.java,7\1\712f4fa73a4784853800427d971a576302d91a32
 x
