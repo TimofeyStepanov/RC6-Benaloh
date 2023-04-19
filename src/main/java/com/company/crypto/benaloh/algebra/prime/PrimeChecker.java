@@ -51,8 +51,8 @@ public abstract class PrimeChecker implements Cloneable {
     }
 
     protected void checkDigit(BigInteger digitToCheck) {
-        if (digitToCheck.compareTo(BigInteger.TWO) < 0) {
-            throw new IllegalArgumentException("Wrong digit. Digit < 2");
+        if (digitToCheck.compareTo(BigInteger.ONE) < 0) {
+            throw new IllegalArgumentException("Wrong digit. Digit < 1. " + digitToCheck);
         }
     }
 

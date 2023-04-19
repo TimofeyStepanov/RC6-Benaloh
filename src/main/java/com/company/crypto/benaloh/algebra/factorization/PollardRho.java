@@ -6,6 +6,7 @@ import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class PollardRho {
     private static final double PRECISION = 0.99999999999999;
@@ -21,21 +22,21 @@ public class PollardRho {
         }
 
         Set<BigInteger> factors = new HashSet<>();
-        recursionFactor(digit, factors);
+        getFactor(digit, factors);
         return factors;
     }
 
     public List<BigInteger> getFactorList(BigInteger digit) {
-        if (digit.equals(BigInteger.ONE)) {
-            return new ArrayList<>();
+        if (digit.equals(BigInteger.valueOf(-1)) || digit.equals(BigInteger.ONE) || digit.equals(BigInteger.ZERO)) {
+            return Stream.of(digit).toList();
         }
 
         List<BigInteger> factors = new ArrayList<>();
-        recursionFactor(digit, factors);
+        getFactor(digit, factors);
         return factors;
     }
 
-    private void recursionFactor(BigInteger digit, Collection<BigInteger> factors) {
+    private void getFactor(BigInteger digit, Collection<BigInteger> factors) {
         do {
             if (primeChecker.isPrime(digit, PRECISION)) {
                 factors.add(digit);

@@ -13,8 +13,8 @@ class MathTest {
     @Test
     void firstTest() {
         PollardRho pollardRho = new PollardRho(PrimeCheckerType.MILLER_RABIN);
-        for (int i = 0; i < 100; i++) {
-            BigInteger randomDigit = getRandomDigit(ThreadLocalRandom.current().nextInt(1, 256));
+        for (int i = 0; i < 200; i++) {
+            BigInteger randomDigit = getRandomDigit(ThreadLocalRandom.current().nextInt(1, 128));
             System.out.println(randomDigit);
             List<BigInteger> list = pollardRho.getFactorList(randomDigit);
 

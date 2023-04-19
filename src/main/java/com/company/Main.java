@@ -56,10 +56,6 @@ public class Main {
                 return BigInteger.TWO;
             }
 
-            // 103291123123123
-            // 1271452995501029494595481059
-            // 22222222222222222222222222222222222
-
             BigInteger x1 = BigInteger.TWO;
             BigInteger x2 = BigInteger.TWO;
             BigInteger divisor;
@@ -90,6 +86,7 @@ public class Main {
 
 
     public static void main(String[] args) {
+        // 28897710696848861219331411561214669316038653
         Scanner scanner = new Scanner(System.in);
         System.out.println("Pollard Rho Algorithm\n");
         System.out.println("Enter a number");
