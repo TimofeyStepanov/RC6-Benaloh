@@ -1,7 +1,7 @@
 package com.company.crypto.benaloh.algorithm.impl;
 
 import com.company.crypto.benaloh.algebra.discreteLogarithm.DiscreteLogarithmService;
-import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithm;
+import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.BabyStepGiantStep;
 import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithmForInternet;
 import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.SimpleDiscreteLogarithm;
 import com.company.crypto.benaloh.algebra.factorization.FactorizationService;
@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public final class BenalohImpl extends Benaloh {
-    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 16;
+    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 12;
 
     private OpenKey openKey;
     private PrivateKey privateKey;
@@ -31,8 +31,8 @@ public final class BenalohImpl extends Benaloh {
         this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
         this.openKeyGenerator.generateOpenAndPrivateKey();
 
-        //this.discreteLogarithmService = new SimpleDiscreteLogarithm();
-        this.discreteLogarithmService = new ShanksAlgorithmForInternet();
+        this.discreteLogarithmService = new SimpleDiscreteLogarithm();
+        //this.discreteLogarithmService = new BabyStepGiantStep();
     }
 
     @Override
@@ -106,13 +106,13 @@ public final class BenalohImpl extends Benaloh {
         BigInteger n = openKey.getN();
         BigInteger r = openKey.getR();
 
-        BigInteger message = translateInputByteArrayToBigInteger(array);
-        log.info("message to decode:" + message);
-        if (message.compareTo(n) >= 0) {
+        BigInteger encodedMessage = translateInputByteArrayToBigInteger(array);
+        log.info("message to decode:" + encodedMessage);
+        if (encodedMessage.compareTo(n) >= 0) {
             throw new IllegalArgumentException("Wrong message to decode");
         }
 
-        BigInteger a = message.modPow(f.divide(r), n);
+        BigInteger a = encodedMessage.modPow(f.divide(r), n);
         BigInteger decodedMessage = discreteLogarithmService.getDiscreteLogarithm(privateKey.getX(), a, n);
         log.info("decoded message:" + decodedMessage);
 
@@ -168,11 +168,11 @@ public final class BenalohImpl extends Benaloh {
             log.info("Generate q:" + q);
 
             BigInteger n = p.multiply(q);
-            BigInteger f = p.subtract(BigInteger.ONE).multiply(qMinusOne);
+            BigInteger f = pMinusOne.multiply(qMinusOne);
             BigInteger y;
             do {
                 y = BenalohImpl.this.getRandomPositiveDigit(n);
-            } while (yIsNotCorrect(y, n, f) || y.equals(n));
+            } while (yIsNotCorrect(y, r, n, f) || y.equals(n));
             log.info("Generate y:" + y);
 
             BigInteger yDegree = f.divide(r);
@@ -200,8 +200,8 @@ public final class BenalohImpl extends Benaloh {
             return randomEvenDigit;
         }
 
-        private boolean yIsNotCorrect(BigInteger y, BigInteger n, BigInteger f) {
-            Set<BigInteger> primeMultipliers = factorizationService.getUniquePrimeMultipliers(y);
+        private boolean yIsNotCorrect(BigInteger y, BigInteger r, BigInteger n, BigInteger f) {
+            Set<BigInteger> primeMultipliers = factorizationService.getUniquePrimeMultipliers(r);
             for (BigInteger primeMultiplier : primeMultipliers) {
                 BigInteger yDegree = f.divide(primeMultiplier);
                 BigInteger yModPow = y.modPow(yDegree, n);

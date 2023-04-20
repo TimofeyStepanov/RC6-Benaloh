@@ -11,9 +11,7 @@ import java.math.BigInteger;
 class ShanksAlgorithmTest {
     @Test
     void firstTest() {
-        DiscreteLogarithmService s2 = new Pollard(
-                new PollardRho(PrimeCheckerFabric.getInstance(PrimeCheckerType.MILLER_RABIN))
-        );
+        DiscreteLogarithmService s2 = new BabyStepGiantStep();
 
         BigInteger answer;
         answer = s2.getDiscreteLogarithm(BigInteger.valueOf(3), BigInteger.valueOf(13), BigInteger.valueOf(17));

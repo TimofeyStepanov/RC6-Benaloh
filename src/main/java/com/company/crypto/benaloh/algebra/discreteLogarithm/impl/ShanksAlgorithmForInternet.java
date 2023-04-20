@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public final class ShanksAlgorithmForInternet implements DiscreteLogarithmService {
     private static final BigInteger MINUS_ONE = BigInteger.valueOf(-1);
     private static final BigInteger ZERO = BigInteger.valueOf(0) ;

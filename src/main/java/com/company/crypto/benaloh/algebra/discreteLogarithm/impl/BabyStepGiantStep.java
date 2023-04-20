@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ShanksAlgorithm implements DiscreteLogarithmService {
+public class BabyStepGiantStep implements DiscreteLogarithmService {
     @Override
     public BigInteger getDiscreteLogarithm(BigInteger base, BigInteger arg, BigInteger modulo) {
         BigInteger maxIterationNumber = modulo.sqrt().add(BigInteger.ONE);
