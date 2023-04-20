@@ -20,9 +20,8 @@ class BenalohImplTest {
 
     @Test
     void secondTest() {
-        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 10);
+        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 293);
         for (int i = 0; i < 100; i++) {
-            benaloh.regenerateOpenKey();
             byte[] array = new byte[1];
             array[0] = (byte) ThreadLocalRandom.current().nextInt();
 

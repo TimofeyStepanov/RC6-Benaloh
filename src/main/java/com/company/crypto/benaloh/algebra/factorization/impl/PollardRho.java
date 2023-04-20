@@ -1,32 +1,24 @@
-package com.company.crypto.benaloh.algebra.factorization;
+package com.company.crypto.benaloh.algebra.factorization.impl;
 
+import com.company.crypto.benaloh.algebra.factorization.FactorizationService;
 import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
-import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
-import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class PollardRho {
+@RequiredArgsConstructor
+public final class PollardRho implements FactorizationService {
     private static final double PRECISION = 0.99999999999999;
     private final PrimeChecker primeChecker;
 
-    public PollardRho(PrimeCheckerType type) {
-        this.primeChecker = PrimeCheckerFabric.getInstance(type);
+    @Override
+    public List<BigInteger> getAllPrimeMultipliers(BigInteger digit) {
+        return this.getFactorList(digit);
     }
 
-    public Set<BigInteger> getFactorSet(BigInteger digit) {
-        if (digit.equals(BigInteger.ONE)) {
-            return new HashSet<>();
-        }
-
-        Set<BigInteger> factors = new HashSet<>();
-        getFactor(digit, factors);
-        return factors;
-    }
-
-    public List<BigInteger> getFactorList(BigInteger digit) {
+    private List<BigInteger> getFactorList(BigInteger digit) {
         if (digit.equals(BigInteger.valueOf(-1)) || digit.equals(BigInteger.ONE) || digit.equals(BigInteger.ZERO)) {
             return Stream.of(digit).toList();
         }
@@ -46,18 +38,12 @@ public class PollardRho {
             factors.add(divisor);
             digit = digit.divide(divisor);
         } while (!digit.equals(BigInteger.ONE));
-        //recursionFactor(divisor, factors);
-        //recursionFactor(digit.divide(divisor), factors);
     }
 
     private BigInteger getDivisor(BigInteger digit) {
         if (digit.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
             return BigInteger.TWO;
         }
-
-        // 103291123123123
-        // 1271452995501029494595481059
-        // 22222222222222222222222222222222222
 
         BigInteger x1 = BigInteger.TWO;
         BigInteger x2 = BigInteger.TWO;
@@ -84,5 +70,21 @@ public class PollardRho {
 
     private BigInteger countFunction(BigInteger digit) {
         return digit.multiply(digit).add(BigInteger.ONE);
+    }
+
+
+    @Override
+    public Set<BigInteger> getUniquePrimeMultipliers(BigInteger digit) {
+        return this.getFactorSet(digit);
+    }
+
+    private Set<BigInteger> getFactorSet(BigInteger digit) {
+        if (digit.equals(BigInteger.ONE)) {
+            return new HashSet<>();
+        }
+
+        Set<BigInteger> factors = new HashSet<>();
+        getFactor(digit, factors);
+        return factors;
     }
 }

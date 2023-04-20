@@ -1,13 +1,7 @@
 package com.company.crypto.benaloh.algebra.residue;
 
 
-import com.company.crypto.benaloh.algebra.factorization.PollardRho;
-import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
-import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
-import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
-
 import java.math.BigInteger;
-import java.util.*;
 
 public final class Math {
     public int getLegendreSymbol(BigInteger a, BigInteger p) {

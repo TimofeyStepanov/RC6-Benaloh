@@ -1,5 +1,10 @@
 package com.company.crypto.benaloh.algorithm.impl;
 
+import com.company.crypto.benaloh.algebra.discreteLogarithm.DiscreteLogarithmService;
+import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithm;
+import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.SimpleDiscreteLogarithm;
+import com.company.crypto.benaloh.algebra.factorization.FactorizationService;
+import com.company.crypto.benaloh.algebra.factorization.impl.PollardRho;
 import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
@@ -19,9 +24,13 @@ public final class BenalohImpl extends Benaloh {
     private final OpenKeyGenerator openKeyGenerator;
     private final Random random = new Random();
 
+    private final DiscreteLogarithmService discreteLogarithmService;
+
     public BenalohImpl(PrimeCheckerType type, double precision, int rLength) {
         this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
         this.openKeyGenerator.generateOpenAndPrivateKey();
+
+        this.discreteLogarithmService = new ShanksAlgorithm();
     }
 
     @Override
@@ -35,7 +44,7 @@ public final class BenalohImpl extends Benaloh {
         log.info("message to encode:" + message);
 
         BigInteger r = openKey.getR();
-        if (message.compareTo(r) >= 0) {
+        if (message.bitLength() >= openKeyGenerator.rLength) {
             throw new IllegalArgumentException("Wrong message to encode");
         }
 
@@ -102,59 +111,13 @@ public final class BenalohImpl extends Benaloh {
         }
 
         BigInteger a = message.modPow(f.divide(r), n);
-        BigInteger decodedMessage = getDiscreteLogarithm(privateKey.getX(), a, n);
+        BigInteger decodedMessage = discreteLogarithmService.getDiscreteLogarithm(privateKey.getX(), a, n);
         log.info("decoded message:" + decodedMessage);
 
         byte[] arrayOfDecodedMessage = decodedMessage.toByteArray();
         reverseArray(arrayOfDecodedMessage);
         arrayOfDecodedMessage = deleteLastElementOfArrayIfItZero(arrayOfDecodedMessage);
         return arrayOfDecodedMessage;
-    }
-
-    private BigInteger getDiscreteLogarithm(BigInteger base, BigInteger arg, BigInteger modulo) {
-//        BigInteger m = BigInteger.ZERO;
-//        BigInteger r = openKey.getR();
-//        while (!m.equals(r)) {
-//            BigInteger toCheck = base.modPow(m, modulo);
-//            if (toCheck.equals(arg)) {
-//                log.info("i:" + m);
-//                return m;
-//            }
-//            m = m.add(BigInteger.ONE);
-//        }
-
-
-        BigInteger maxIterationNumber = modulo.sqrt().add(BigInteger.ONE);
-        BigInteger aInDegreeN = BigInteger.ONE;
-        BigInteger i = BigInteger.ZERO;
-        while (!i.equals(maxIterationNumber)) {
-            aInDegreeN = aInDegreeN.multiply(base).mod(modulo);
-            i = i.add(BigInteger.ONE);
-        }
-
-        Map<BigInteger, BigInteger> values = new HashMap<>();
-        i = BigInteger.ONE;
-        BigInteger current = aInDegreeN;
-        while (i.compareTo(maxIterationNumber) <= 0) {
-            values.putIfAbsent(current, i);
-            current = current.multiply(aInDegreeN).mod(modulo);
-            i = i.add(BigInteger.ONE);
-        }
-
-        i = BigInteger.ZERO;
-        current = arg;
-        while (i.compareTo(maxIterationNumber) <= 0) {
-            if (values.containsKey(current)) {
-                BigInteger value = values.get(current);
-                BigInteger answer = value.multiply(maxIterationNumber).subtract(i);
-                if (answer.compareTo(modulo) < 0) {
-                    return answer;
-                }
-            }
-            current = current.multiply(base).mod(modulo);
-            i = i.add(BigInteger.ONE);
-        }
-        throw new IllegalArgumentException("Can't find discrete l");
     }
 
     @Override
@@ -168,6 +131,7 @@ public final class BenalohImpl extends Benaloh {
     }
 
     class OpenKeyGenerator {
+        private final FactorizationService factorizationService;
         private final PrimeChecker primeChecker;
         private final double precision;
         private final int rLength;
@@ -176,38 +140,41 @@ public final class BenalohImpl extends Benaloh {
             this.primeChecker = PrimeCheckerFabric.getInstance(type);
             this.precision = precision;
             this.rLength = rLength;
+
+            this.factorizationService = new PollardRho(this.primeChecker);
         }
 
         public void generateOpenAndPrivateKey() {
-            BigInteger r = generateRandomPrimeDigit(rLength);
+            BigInteger r = BigInteger.valueOf(rLength);
             BigInteger p;
             BigInteger pMinusOne;
 
-            int randomLength = MIN_LENGTH_OF_PRIME_DIGIT + ThreadLocalRandom.current().nextInt(0, MIN_LENGTH_OF_PRIME_DIGIT);
             do {
+                int randomLength = MIN_LENGTH_OF_PRIME_DIGIT + ThreadLocalRandom.current().nextInt(0, MIN_LENGTH_OF_PRIME_DIGIT);
                 p = generateRandomPrimeDigit(randomLength);
                 pMinusOne = p.subtract(BigInteger.ONE);
-            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || !getGCD(r, pMinusOne.divide(r)).equals(BigInteger.ONE));
+            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || r.gcd(pMinusOne.divide(r)).equals(BigInteger.ONE));
+            log.info("Generate p:" + p);
 
             BigInteger q;
             BigInteger qMinusOne;
-            BigInteger gcd;
             do {
-                q = generateRandomPrimeDigit(r);
+                int randomLength = MIN_LENGTH_OF_PRIME_DIGIT + ThreadLocalRandom.current().nextInt(0, MIN_LENGTH_OF_PRIME_DIGIT);
+                q = generateRandomPrimeDigit(randomLength);
                 qMinusOne = q.subtract(BigInteger.ONE);
-                gcd = getGCD(qMinusOne, r);
-            } while (!gcd.equals(BigInteger.ONE) || p.equals(q));
+            } while (!qMinusOne.gcd(r).equals(BigInteger.ONE) || p.equals(q));
+            log.info("Generate q:" + q);
 
             BigInteger n = p.multiply(q);
             BigInteger f = p.subtract(BigInteger.ONE).multiply(qMinusOne);
-            BigInteger yDegree = f.divide(r);
             BigInteger y;
-            BigInteger x;
             do {
-                y = getRandomPositiveDigit(n);
-                x = y.modPow(yDegree, n);
-                gcd = getGCD(x, n);
-            } while (gcd.equals(BigInteger.ONE) || y.equals(n));
+                y = BenalohImpl.this.getRandomPositiveDigit(n);
+            } while (yIsNotCorrect(y, n, f) || y.equals(n));
+            log.info("Generate y:" + y);
+
+            BigInteger yDegree = f.divide(r);
+            BigInteger x = y.modPow(yDegree, n);
 
             BenalohImpl.this.openKey = new OpenKey(y, r, n);
             BenalohImpl.this.privateKey = new PrivateKey(f, x);
@@ -231,16 +198,16 @@ public final class BenalohImpl extends Benaloh {
             return randomEvenDigit;
         }
 
-        private BigInteger generateRandomPrimeDigit(BigInteger minDigit) {
-            int digitLength = minDigit.bitLength() + ThreadLocalRandom.current().nextInt(1, minDigit.bitLength());
-            return generateRandomPrimeDigit(digitLength);
-        }
-
-        private BigInteger getGCD(BigInteger firstDigit, BigInteger secondDigit) {
-            if (secondDigit.equals(BigInteger.ZERO)) {
-                return firstDigit;
+        private boolean yIsNotCorrect(BigInteger y, BigInteger n, BigInteger f) {
+            Set<BigInteger> primeMultipliers = factorizationService.getUniquePrimeMultipliers(y);
+            for (BigInteger primeMultiplier : primeMultipliers) {
+                BigInteger yDegree = f.divide(primeMultiplier);
+                BigInteger yModPow = y.modPow(yDegree, n);
+                if (yModPow.equals(BigInteger.ONE)) {
+                    return true;
+                }
             }
-            return getGCD(secondDigit, firstDigit.mod(secondDigit));
+            return false;
         }
     }
 }
