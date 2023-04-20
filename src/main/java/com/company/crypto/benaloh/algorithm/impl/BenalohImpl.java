@@ -2,6 +2,7 @@ package com.company.crypto.benaloh.algorithm.impl;
 
 import com.company.crypto.benaloh.algebra.discreteLogarithm.DiscreteLogarithmService;
 import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithm;
+import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithmForInternet;
 import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.SimpleDiscreteLogarithm;
 import com.company.crypto.benaloh.algebra.factorization.FactorizationService;
 import com.company.crypto.benaloh.algebra.factorization.impl.PollardRho;
@@ -17,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public final class BenalohImpl extends Benaloh {
-    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 64;
+    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 16;
 
     private OpenKey openKey;
     private PrivateKey privateKey;
@@ -30,7 +31,8 @@ public final class BenalohImpl extends Benaloh {
         this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
         this.openKeyGenerator.generateOpenAndPrivateKey();
 
-        this.discreteLogarithmService = new ShanksAlgorithm();
+        //this.discreteLogarithmService = new SimpleDiscreteLogarithm();
+        this.discreteLogarithmService = new ShanksAlgorithmForInternet();
     }
 
     @Override
@@ -45,7 +47,7 @@ public final class BenalohImpl extends Benaloh {
 
         BigInteger r = openKey.getR();
         if (message.bitLength() >= openKeyGenerator.rLength) {
-            throw new IllegalArgumentException("Wrong message to encode");
+            throw new IllegalArgumentException("Wrong message to encode. Bit length:" + message.bitLength());
         }
 
         BigInteger n = openKey.getN();
@@ -82,7 +84,7 @@ public final class BenalohImpl extends Benaloh {
         do {
             int randomLength = Math.abs(ThreadLocalRandom.current().nextInt() % maxDigit.bitLength());
             randomDigit = new BigInteger(randomLength, random);
-        } while (!(randomDigit.compareTo(BigInteger.ZERO) > 0 && randomDigit.compareTo(maxDigit) < 0));
+        } while (!(randomDigit.compareTo(BigInteger.ONE) > 0 && randomDigit.compareTo(maxDigit) < 0));
         return randomDigit;
     }
 

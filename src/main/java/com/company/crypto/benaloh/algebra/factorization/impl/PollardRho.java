@@ -14,7 +14,7 @@ public final class PollardRho implements FactorizationService {
     private final PrimeChecker primeChecker;
 
     @Override
-    public List<BigInteger> getAllPrimeMultipliers(BigInteger digit) {
+    public List<BigInteger> getListOfAllPrimeMultipliers(BigInteger digit) {
         return this.getFactorList(digit);
     }
 
@@ -86,5 +86,25 @@ public final class PollardRho implements FactorizationService {
         Set<BigInteger> factors = new HashSet<>();
         getFactor(digit, factors);
         return factors;
+    }
+
+
+    @Override
+    public Map<BigInteger, BigInteger> getMapOfAllPrimeMultipliers(BigInteger digit) {
+        Map<BigInteger, BigInteger> factorsMap = new HashMap<>();
+        getFactor(digit, factorsMap);
+        return factorsMap;
+    }
+
+    private void getFactor(BigInteger digit, Map<BigInteger, BigInteger> factorsMap) {
+        do {
+            if (primeChecker.isPrime(digit, PRECISION)) {
+                factorsMap.merge(digit, BigInteger.ONE, BigInteger::add);
+                return;
+            }
+            BigInteger divisor = getDivisor(digit);
+            factorsMap.merge(digit, BigInteger.ONE, BigInteger::add);
+            digit = digit.divide(divisor);
+        } while (!digit.equals(BigInteger.ONE));
     }
 }

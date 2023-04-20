@@ -17,7 +17,7 @@ class MathTest {
         for (int i = 0; i < 200; i++) {
             BigInteger randomDigit = getRandomDigit(ThreadLocalRandom.current().nextInt(1, 128));
             System.out.println(randomDigit);
-            List<BigInteger> list = pollardRho.getAllPrimeMultipliers(randomDigit);
+            List<BigInteger> list = pollardRho.getListOfAllPrimeMultipliers(randomDigit);
 
             BigInteger toCheck = BigInteger.ONE;
             for (BigInteger evenDigit : list) {

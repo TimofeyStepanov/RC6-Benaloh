@@ -11,7 +11,7 @@ class BenalohImplTest {
     @Test
     void firstTest() {
         // Нельзя подавать пустой последний элемент!
-        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 10);
+        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 293);
         byte[] array = {-10};
         byte[] encoded = benaloh.encode(array, benaloh.getOpenKey());
         byte[] decoded = benaloh.decode(encoded);
@@ -34,6 +34,46 @@ class BenalohImplTest {
             if (!Arrays.equals(array, decoded)) {
                 assert (false);
             }
+        }
+        assert (true);
+    }
+
+    @Test
+    void thirdTest() {
+        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 293);
+        for (int i = 0; i < 100; i++) {
+            byte[] array = new byte[32];
+            for (int j = 0;j < array.length; j++) {
+                array[j] = (byte) ThreadLocalRandom.current().nextInt();
+            }
+            if (array[array.length - 1] == 0) {
+                array[array.length - 1] = 127;
+            }
+
+            byte[] encoded = benaloh.encode(array, benaloh.getOpenKey());
+            byte[] decoded = benaloh.decode(encoded);
+            if (!Arrays.equals(array, decoded)) {
+                assert (false);
+            }
+        }
+        assert (true);
+    }
+
+    @Test
+    void fourTest() {
+        Benaloh benaloh = new BenalohImpl(PrimeCheckerType.MILLER_RABIN, 0.999999, 293);
+        byte[] array = new byte[2];
+        for (int j = 0; j < array.length; j++) {
+            array[j] = (byte) ThreadLocalRandom.current().nextInt();
+        }
+        if (array[array.length - 1] == 0) {
+            array[array.length - 1] = 127;
+        }
+
+        byte[] encoded = benaloh.encode(array, benaloh.getOpenKey());
+        byte[] decoded = benaloh.decode(encoded);
+        if (!Arrays.equals(array, decoded)) {
+            assert (false);
         }
         assert (true);
     }
