@@ -1,11 +1,7 @@
 package com.company.crypto.benaloh.algorithm.impl;
 
 import com.company.crypto.benaloh.algebra.discreteLogarithm.DiscreteLogarithmService;
-import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.BabyStepGiantStep;
-import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.ShanksAlgorithmForInternet;
 import com.company.crypto.benaloh.algebra.discreteLogarithm.impl.SimpleDiscreteLogarithm;
-import com.company.crypto.benaloh.algebra.factorization.FactorizationService;
-import com.company.crypto.benaloh.algebra.factorization.impl.PollardRho;
 import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
@@ -13,12 +9,15 @@ import com.company.crypto.benaloh.algorithm.Benaloh;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public final class BenalohImpl extends Benaloh {
-    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 12;
+    private static final int MIN_LENGTH_OF_PRIME_DIGIT = 64;
 
     private OpenKey openKey;
     private PrivateKey privateKey;
@@ -31,13 +30,13 @@ public final class BenalohImpl extends Benaloh {
         this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
         this.openKeyGenerator.generateOpenAndPrivateKey();
 
-        this.discreteLogarithmService = new SimpleDiscreteLogarithm();
-        //this.discreteLogarithmService = new BabyStepGiantStep();
+        this.discreteLogarithmService = new SimpleDiscreteLogarithm(openKey.getR());
     }
 
     @Override
     public byte[] encode(byte[] array, OpenKey openKey) {
         Objects.requireNonNull(array);
+        Objects.requireNonNull(openKey);
         if (array.length == 0) {
             return new byte[0];
         }
@@ -46,14 +45,19 @@ public final class BenalohImpl extends Benaloh {
         log.info("message to encode:" + message);
 
         BigInteger r = openKey.getR();
-        if (message.bitLength() >= openKeyGenerator.rLength) {
-            throw new IllegalArgumentException("Wrong message to encode. Bit length:" + message.bitLength());
+        if (message.compareTo(r) >= 0) {
+            throw new IllegalArgumentException("Wrong message to encode:" + message);
         }
 
         BigInteger n = openKey.getN();
-        BigInteger u = getRandomPositiveDigit(n);
+        BigInteger u;
+        do {
+            u = getRandomPositiveDigit(n);
+        } while (!u.gcd(n).equals(BigInteger.ONE));
+        log.info("generate u:" + u);
 
         BigInteger y = openKey.getY();
+
         BigInteger yInDegree = y.modPow(message, n);
         BigInteger uInDegree = u.modPow(r, n);
         BigInteger encodedMessage = yInDegree.multiply(uInDegree).mod(n);
@@ -116,10 +120,20 @@ public final class BenalohImpl extends Benaloh {
         BigInteger decodedMessage = discreteLogarithmService.getDiscreteLogarithm(privateKey.getX(), a, n);
         log.info("decoded message:" + decodedMessage);
 
+        checkDecodedMessage(decodedMessage, a);
+
         byte[] arrayOfDecodedMessage = decodedMessage.toByteArray();
         reverseArray(arrayOfDecodedMessage);
         arrayOfDecodedMessage = deleteLastElementOfArrayIfItZero(arrayOfDecodedMessage);
         return arrayOfDecodedMessage;
+    }
+
+    private void checkDecodedMessage(BigInteger decodedMessage, BigInteger a) {
+        BigInteger x = privateKey.getX();
+        BigInteger n = openKey.getN();
+        if (!x.modPow(decodedMessage, n).equals(a)) {
+            throw new IllegalArgumentException("Wrong decoded message!");
+        }
     }
 
     @Override
@@ -133,29 +147,25 @@ public final class BenalohImpl extends Benaloh {
     }
 
     class OpenKeyGenerator {
-        private final FactorizationService factorizationService;
         private final PrimeChecker primeChecker;
         private final double precision;
-        private final int rLength;
+        private final int rPrimeLength;
 
         public OpenKeyGenerator(PrimeCheckerType type, double precision, int rLength) {
             this.primeChecker = PrimeCheckerFabric.getInstance(type);
             this.precision = precision;
-            this.rLength = rLength;
-
-            this.factorizationService = new PollardRho(this.primeChecker);
+            this.rPrimeLength = rLength;
         }
 
         public void generateOpenAndPrivateKey() {
-            BigInteger r = BigInteger.valueOf(rLength);
+            BigInteger r = BigInteger.valueOf(rPrimeLength);
             BigInteger p;
             BigInteger pMinusOne;
-
             do {
                 int randomLength = MIN_LENGTH_OF_PRIME_DIGIT + ThreadLocalRandom.current().nextInt(0, MIN_LENGTH_OF_PRIME_DIGIT);
                 p = generateRandomPrimeDigit(randomLength);
                 pMinusOne = p.subtract(BigInteger.ONE);
-            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || r.gcd(pMinusOne.divide(r)).equals(BigInteger.ONE));
+            } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || !r.gcd(pMinusOne.divide(r)).equals(BigInteger.ONE));
             log.info("Generate p:" + p);
 
             BigInteger q;
@@ -164,22 +174,24 @@ public final class BenalohImpl extends Benaloh {
                 int randomLength = MIN_LENGTH_OF_PRIME_DIGIT + ThreadLocalRandom.current().nextInt(0, MIN_LENGTH_OF_PRIME_DIGIT);
                 q = generateRandomPrimeDigit(randomLength);
                 qMinusOne = q.subtract(BigInteger.ONE);
-            } while (!qMinusOne.gcd(r).equals(BigInteger.ONE) || p.equals(q));
+            } while (!r.gcd(qMinusOne).equals(BigInteger.ONE) || p.equals(q));
             log.info("Generate q:" + q);
 
             BigInteger n = p.multiply(q);
             BigInteger f = pMinusOne.multiply(qMinusOne);
+            BigInteger yDegree = f.divide(r);
             BigInteger y;
             do {
                 y = BenalohImpl.this.getRandomPositiveDigit(n);
-            } while (yIsNotCorrect(y, r, n, f) || y.equals(n));
+            } while (!y.gcd(n).equals(BigInteger.ONE) || y.modPow(yDegree, n).equals(BigInteger.ONE));
             log.info("Generate y:" + y);
 
-            BigInteger yDegree = f.divide(r);
             BigInteger x = y.modPow(yDegree, n);
 
             BenalohImpl.this.openKey = new OpenKey(y, r, n);
             BenalohImpl.this.privateKey = new PrivateKey(f, x);
+
+            checkAll(p, q);
         }
 
         private BigInteger generateRandomPrimeDigit(int digitLength) {
@@ -200,16 +212,31 @@ public final class BenalohImpl extends Benaloh {
             return randomEvenDigit;
         }
 
-        private boolean yIsNotCorrect(BigInteger y, BigInteger r, BigInteger n, BigInteger f) {
-            Set<BigInteger> primeMultipliers = factorizationService.getUniquePrimeMultipliers(r);
-            for (BigInteger primeMultiplier : primeMultipliers) {
-                BigInteger yDegree = f.divide(primeMultiplier);
-                BigInteger yModPow = y.modPow(yDegree, n);
-                if (yModPow.equals(BigInteger.ONE)) {
-                    return true;
-                }
+
+        private void checkAll(BigInteger p, BigInteger q) {
+            BigInteger f = BenalohImpl.this.privateKey.getF();
+            BigInteger y = BenalohImpl.this.openKey.getY();
+            BigInteger r = BenalohImpl.this.openKey.getR();
+            BigInteger n = BenalohImpl.this.openKey.getN();
+
+            if (!primeChecker.isPrime(r, precision)) {
+                throw new IllegalArgumentException("Not prime");
             }
-            return false;
+            if (!primeChecker.isPrime(q, precision)) {
+                throw new IllegalArgumentException("Not prime");
+            }
+            if (!primeChecker.isPrime(p, precision)) {
+                throw new IllegalArgumentException("Not prime");
+            }
+            if (y.modPow(f.divide(r), n).equals(BigInteger.ONE)) {
+                throw new IllegalArgumentException("");
+            }
+            if (!r.gcd(p.subtract(BigInteger.ONE).divide(r)).equals(BigInteger.ONE)) {
+                throw new IllegalArgumentException("r and p-1/r");
+            }
+            if (!r.gcd(q.subtract(BigInteger.ONE)).equals(BigInteger.ONE)) {
+                throw new IllegalArgumentException("r and q-1");
+            }
         }
     }
 }

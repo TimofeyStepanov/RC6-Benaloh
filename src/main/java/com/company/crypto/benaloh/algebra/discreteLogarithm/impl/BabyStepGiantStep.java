@@ -1,14 +1,20 @@
 package com.company.crypto.benaloh.algebra.discreteLogarithm.impl;
 
 import com.company.crypto.benaloh.algebra.discreteLogarithm.DiscreteLogarithmService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class BabyStepGiantStep implements DiscreteLogarithmService {
     @Override
     public BigInteger getDiscreteLogarithm(BigInteger base, BigInteger arg, BigInteger modulo) {
+        log.info("base:" + base);
+        log.info("arg:" + arg);
+        log.info("modulo:" + modulo);
+
         BigInteger maxIterationNumber = modulo.sqrt().add(BigInteger.ONE);
         BigInteger aInDegreeN = BigInteger.ONE;
         BigInteger i = BigInteger.ZERO;
@@ -33,7 +39,13 @@ public class BabyStepGiantStep implements DiscreteLogarithmService {
                 BigInteger value = values.get(current);
                 BigInteger answer = value.multiply(maxIterationNumber).subtract(i);
                 if (answer.compareTo(modulo) < 0) {
-                    return answer;
+                    log.info("another answer:" + answer);
+                    if (answer.equals(BigInteger.valueOf(10))) {
+                        log.info("answer:");
+                        return answer;
+                    }
+                    //log.info("answer:" + answer);
+                    //return answer;
                 }
             }
             current = current.multiply(base).mod(modulo);
