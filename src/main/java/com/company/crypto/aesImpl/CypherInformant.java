@@ -11,12 +11,13 @@ public class CypherInformant {
     }
 
     public void addProcessedBytes(long processedBytes) {
+        //System.out.println(getPercentsOfProcessedBytes());
         atomicLong.addAndGet(processedBytes);
     }
 
     public int getPercentsOfProcessedBytes() {
         long numberOfProcessedBytes = atomicLong.get();
         if (numberOfProcessedBytes > fileLength) numberOfProcessedBytes = fileLength;
-        return (int) (numberOfProcessedBytes / fileLength * 100);
+        return (int) (numberOfProcessedBytes * 100 / fileLength);
     }
 }
