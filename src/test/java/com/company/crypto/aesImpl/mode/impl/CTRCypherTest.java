@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode.impl;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.SymmetricBlockCypher;
 import com.company.crypto.aesImpl.algorithm.impl.RC6Bits32;
 import com.company.crypto.aesImpl.mode.SymmetricalBlockMode;
@@ -43,11 +44,18 @@ class CTRCypherTest {
             two.delete();
             three.delete();
 
-            cipher.encode(one, two);
-            cipher.decode(two, three);
+            CypherInformant encodedCypherInformant = new CypherInformant(one.length());
+            cipher.encode(one, two, encodedCypherInformant);
+
+            CypherInformant decodedCypherInformant = new CypherInformant(two.length());
+            cipher.decode(two, three, decodedCypherInformant);
 
             System.out.println(Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())));
             assert (Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())) == -1);
+
+            System.out.println("Bytes encoded:" + encodedCypherInformant.getPercentsOfProcessedBytes() + " " + one.length());
+            System.out.println("Bytes decoded:" + decodedCypherInformant.getPercentsOfProcessedBytes() + " " + two.length());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,11 +91,18 @@ class CTRCypherTest {
             two.delete();
             three.delete();
 
-            cipher.encode(one, two);
-            cipher.decode(two, three);
+            CypherInformant encodedCypherInformant = new CypherInformant(one.length());
+            cipher.encode(one, two, encodedCypherInformant);
+
+            CypherInformant decodedCypherInformant = new CypherInformant(two.length());
+            cipher.decode(two, three, decodedCypherInformant);
 
             System.out.println(Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())));
             assert (Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())) == -1);
+
+            System.out.println("Bytes encoded:" + encodedCypherInformant.getPercentsOfProcessedBytes() + " " + one.length());
+            System.out.println("Bytes decoded:" + decodedCypherInformant.getPercentsOfProcessedBytes() + " " + two.length());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,10 +138,18 @@ class CTRCypherTest {
             two.delete();
             three.delete();
 
-            cipher.encode(one, two);
-            cipher.decode(two, three);
+            CypherInformant encodedCypherInformant = new CypherInformant(one.length());
+            cipher.encode(one, two, encodedCypherInformant);
 
+            CypherInformant decodedCypherInformant = new CypherInformant(two.length());
+            cipher.decode(two, three, decodedCypherInformant);
+
+            System.out.println(Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())));
             assert (Files.mismatch(Path.of(one.getPath()), Path.of(three.getPath())) == -1);
+
+            System.out.println("Bytes encoded:" + encodedCypherInformant.getPercentsOfProcessedBytes() + " " + one.length());
+            System.out.println("Bytes decoded:" + decodedCypherInformant.getPercentsOfProcessedBytes() + " " + two.length());
+
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -53,18 +53,18 @@ public final class SymmetricBlockCypher implements Closeable {
         this.symmetricalBlockCypher = cypherFabric.create(algorithm, args);
     }
 
-    public void encode(File inputFile, File outputFile) throws IOException {
+    public void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         Objects.requireNonNull(inputFile);
         Objects.requireNonNull(outputFile);
 
-        symmetricalBlockCypher.encode(inputFile, outputFile);
+        symmetricalBlockCypher.encode(inputFile, outputFile, cypherInformant);
     }
 
-    public void decode(File inputFile, File outputFile) throws IOException {
+    public void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         Objects.requireNonNull(inputFile);
         Objects.requireNonNull(outputFile);
 
-        symmetricalBlockCypher.decode(inputFile, outputFile);
+        symmetricalBlockCypher.decode(inputFile, outputFile, cypherInformant);
     }
 
     public void setKey(byte[] key) {

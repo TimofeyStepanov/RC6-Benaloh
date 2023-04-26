@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode.impl;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 import com.company.crypto.aesImpl.mode.SymmetricalBlockModeCypher;
 import com.company.crypto.aesImpl.padding.PKCS7;
@@ -17,7 +18,7 @@ public class OFBCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void encode(File inputFile, File outputFile) throws IOException {
+    public void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         try (
                 InputStream inputStream = new BufferedInputStream(new FileInputStream(inputFile));
                 OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
@@ -32,6 +33,7 @@ public class OFBCypher extends SymmetricalBlockModeCypher {
                 }
 
                 byte[] encoded = algorithm.encode(toEncode);
+                cypherInformant.addProcessedBytes(read);
                 toEncode = encoded;
 
                 xor(buffer, encoded);
@@ -42,7 +44,7 @@ public class OFBCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void decode(File inputFile, File outputFile) throws IOException {
+    public void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         try (
                 InputStream inputStream = new BufferedInputStream(new FileInputStream(inputFile));
                 OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
@@ -54,7 +56,8 @@ public class OFBCypher extends SymmetricalBlockModeCypher {
             System.arraycopy(initialVector, 0, toEncode, 0, initialVector.length);
 
             boolean isFirstDecode = true;
-            while (inputStream.read(buffer, 0, bufferSize) != -1) {
+            long read;
+            while ((read = inputStream.read(buffer, 0, bufferSize)) != -1) {
                 if (isFirstDecode) {
                     isFirstDecode = false;
                 } else {
@@ -62,6 +65,7 @@ public class OFBCypher extends SymmetricalBlockModeCypher {
                 }
 
                 byte[] encoded = algorithm.encode(toEncode);
+                cypherInformant.addProcessedBytes(bufferSize);
                 toEncode = encoded;
 
                 xor(buffer, encoded);

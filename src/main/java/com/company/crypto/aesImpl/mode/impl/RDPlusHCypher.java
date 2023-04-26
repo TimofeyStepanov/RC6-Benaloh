@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode.impl;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 import com.company.crypto.aesImpl.mode.SymmetricalBlockModeCypher;
 import com.company.crypto.aesImpl.padding.PKCS7;
@@ -27,7 +28,7 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void encode(File inputFile, File outputFile) throws IOException {
+    public void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         try (
                 InputStream inputStream = new BufferedInputStream(new FileInputStream(inputFile));
                 OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
@@ -47,6 +48,7 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
                 presentLongAsByteArray(presentedDigit, i);
                 xor(presentedDigit, previousBlock);
                 byte[] encoded = algorithm.encode(presentedDigit);
+                cypherInformant.addProcessedBytes(read);
 
                 xor(buffer, encoded);
                 outputStream.write(buffer);
@@ -59,7 +61,7 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void decode(File inputFile, File outputFile) throws IOException {
+    public void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         try (
                 InputStream inputStream = new BufferedInputStream(new FileInputStream(inputFile));
                 OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
@@ -71,8 +73,9 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
             byte[] previousBlock = new byte[bufferSize];
             System.arraycopy(hash, 0, previousBlock, 0, bufferSize);
 
+            long read;
             byte[] presentedDigit = new byte[bufferSize];
-            while (inputStream.read(buffer, 0, bufferSize) != -1) {
+            while ((read = inputStream.read(buffer, 0, bufferSize)) != -1) {
                 if (isFirstDecode) {
                     isFirstDecode = false;
                 } else {
@@ -84,6 +87,7 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
                 presentLongAsByteArray(presentedDigit, i);
                 xor(presentedDigit, previousBlock);
                 encoded = algorithm.encode(presentedDigit);
+                cypherInformant.addProcessedBytes(bufferSize);
 
                 System.arraycopy(buffer, 0, previousBlock, 0, bufferSize);
 

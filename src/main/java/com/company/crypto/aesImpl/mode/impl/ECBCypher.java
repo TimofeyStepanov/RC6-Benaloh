@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode.impl;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 import com.company.crypto.aesImpl.mode.SymmetricalBlockModeCypher;
 import com.company.crypto.aesImpl.padding.PKCS7;
@@ -17,7 +18,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void encode(File inputFile, File outputFile) throws IOException {
+    public void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
@@ -27,6 +28,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                     .filePositionToStart(0)
                     .byteToEncode(fileLengthInByte)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -39,6 +41,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                         .filePositionToStart(endOfPreviousBlock)
                         .byteToEncode(blockNumber / threadNumber * bufferSize)
                         .bufferSize(bufferSize)
+                        .cypherInformant(cypherInformant)
                         .algorithm(algorithm)
                         .inputFile(new RandomAccessFile(inputFile, "r"))
                         .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -52,6 +55,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                     .filePositionToStart(endOfPreviousBlock)
                     .byteToEncode(fileLengthInByte - endOfPreviousBlock)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -62,7 +66,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void decode(File inputFile, File outputFile) throws IOException {
+    public void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
@@ -72,6 +76,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                     .filePositionToStart(0)
                     .byteToEncode(fileLengthInByte)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -84,6 +89,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                         .filePositionToStart(endOfPreviousBlock)
                         .byteToEncode(blockNumber / threadNumber * bufferSize)
                         .bufferSize(bufferSize)
+                        .cypherInformant(cypherInformant)
                         .algorithm(algorithm)
                         .inputFile(new RandomAccessFile(inputFile, "r"))
                         .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -97,6 +103,7 @@ public final class ECBCypher extends SymmetricalBlockModeCypher {
                     .filePositionToStart(endOfPreviousBlock)
                     .byteToEncode(fileLengthInByte - endOfPreviousBlock)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -115,6 +122,7 @@ class ECBEncodeFile implements Callable<Void> {
     private final long filePositionToStart;
     private final long byteToEncode;
     private final int bufferSize;
+    private final CypherInformant cypherInformant;
     private final RandomAccessFile inputFile;
     private final RandomAccessFile outputFile;
     private final SymmetricalBlockEncryptionAlgorithm algorithm;
@@ -138,6 +146,7 @@ class ECBEncodeFile implements Callable<Void> {
                 }
 
                 byte[] encoded = algorithm.encode(buffer);
+                cypherInformant.addProcessedBytes(bufferSize);
                 outputStream.write(encoded);
 
                 allReadBytes += read;
@@ -154,6 +163,7 @@ class ECBDecodeFile implements Callable<Void> {
     private final long filePositionToStart;
     private final long byteToEncode;
     private final int bufferSize;
+    private final CypherInformant cypherInformant;
     private final RandomAccessFile inputFile;
     private final RandomAccessFile outputFile;
     private final SymmetricalBlockEncryptionAlgorithm algorithm;
@@ -180,6 +190,7 @@ class ECBDecodeFile implements Callable<Void> {
                     outputStream.write(decoded);
                 }
                 decoded = algorithm.decode(buffer);
+                cypherInformant.addProcessedBytes(read);
 
                 allReadBytes += read;
             }

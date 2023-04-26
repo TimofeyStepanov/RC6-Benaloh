@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode.impl;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 import com.company.crypto.aesImpl.mode.SymmetricalBlockModeCypher;
 import com.company.crypto.aesImpl.padding.PKCS7;
@@ -23,7 +24,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void encode(File inputFile, File outputFile) throws IOException {
+    public void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
@@ -35,6 +36,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                     .indexToStart(this.startDigit)
                     .delta(delta)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -49,6 +51,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                         .indexToStart(endOfPreviousBlock / bufferSize * delta + startDigit)
                         .delta(delta)
                         .bufferSize(bufferSize)
+                        .cypherInformant(cypherInformant)
                         .algorithm(algorithm)
                         .inputFile(new RandomAccessFile(inputFile, "r"))
                         .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -64,6 +67,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                     .indexToStart(endOfPreviousBlock / bufferSize * delta + startDigit)
                     .delta(delta)
                     .bufferSize(bufferSize)
+                    .cypherInformant(cypherInformant)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
                     .outputFile(new RandomAccessFile(outputFile, "rw"))
@@ -74,7 +78,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
     }
 
     @Override
-    public void decode(File inputFile, File outputFile) throws IOException {
+    public void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
@@ -85,6 +89,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                     .byteToEncode(fileLengthInByte)
                     .startDigit(this.startDigit)
                     .delta(delta)
+                    .cypherInformant(cypherInformant)
                     .bufferSize(bufferSize)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
@@ -99,6 +104,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                         .byteToEncode(blockNumber / threadNumber * bufferSize)
                         .bufferSize(bufferSize)
                         .delta(delta)
+                        .cypherInformant(cypherInformant)
                         .startDigit(endOfPreviousBlock / bufferSize * delta + startDigit)
                         .algorithm(algorithm)
                         .inputFile(new RandomAccessFile(inputFile, "r"))
@@ -114,6 +120,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                     .byteToEncode(fileLengthInByte - endOfPreviousBlock)
                     .bufferSize(bufferSize)
                     .delta(delta)
+                    .cypherInformant(cypherInformant)
                     .startDigit(endOfPreviousBlock / bufferSize * delta + startDigit)
                     .algorithm(algorithm)
                     .inputFile(new RandomAccessFile(inputFile, "r"))
@@ -126,6 +133,68 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
 }
 
 @Builder
+class CTREncodeFile implements Callable<Void> {
+    private byte[] buffer;
+
+    private final long filePositionToStart;
+    private final long byteToEncode;
+    private final long indexToStart;
+    private final int bufferSize;
+    private final CypherInformant cypherInformant;
+    private final int delta;
+    private final RandomAccessFile inputFile;
+    private final RandomAccessFile outputFile;
+    private final SymmetricalBlockEncryptionAlgorithm algorithm;
+
+    @Override
+    public Void call() throws Exception {
+        buffer = new byte[bufferSize];
+
+        inputFile.seek(filePositionToStart);
+        outputFile.seek(filePositionToStart);
+
+        try (
+                InputStream inputStream = new BufferedInputStream(new FileInputStream(inputFile.getFD()));
+                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile.getFD()));
+        ) {
+            long i = indexToStart;
+            long allReadBytes = 0;
+            long read;
+
+            byte[] presentedDigit = new byte[bufferSize];
+            while ((read = inputStream.read(buffer, 0, bufferSize)) != -1 && allReadBytes <= byteToEncode) {
+                if (read < bufferSize) {
+                    PKCS7.doPadding(buffer, (int) (bufferSize - read));
+                }
+
+                presentLongAsByteArray(presentedDigit, i);
+                byte[] encoded = algorithm.encode(presentedDigit);
+                cypherInformant.addProcessedBytes(read);
+
+                xor(buffer, encoded);
+                outputStream.write(buffer);
+
+                allReadBytes += read;
+                i += delta;
+            }
+        }
+        return null;
+    }
+    private void xor(byte[] buffer, byte[] array) {
+        for (int i = 0; i < bufferSize; i++) {
+            buffer[i] = (byte) (buffer[i] ^ array[i]);
+        }
+    }
+    private void presentLongAsByteArray(byte[] buffer, long digit) {
+        Arrays.fill(buffer, (byte) 0);
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[buffer.length - i - 1] = (byte) (digit & 0xFF);
+            digit >>= Byte.SIZE;
+        }
+    }
+}
+
+@Builder
 class CTRDecodeFile implements Callable<Void> {
     private byte[] buffer;
 
@@ -134,6 +203,7 @@ class CTRDecodeFile implements Callable<Void> {
     private final long startDigit;
     private final int bufferSize;
     private final int delta;
+    private final CypherInformant cypherInformant;
     private final RandomAccessFile inputFile;
     private final RandomAccessFile outputFile;
     private final SymmetricalBlockEncryptionAlgorithm algorithm;
@@ -165,6 +235,7 @@ class CTRDecodeFile implements Callable<Void> {
 
                 presentLongAsByteArray(presentedDigit, i);
                 encoded = algorithm.encode(presentedDigit);
+                cypherInformant.addProcessedBytes(bufferSize);
                 xor(encoded, buffer);
 
                 allReadBytes += read;

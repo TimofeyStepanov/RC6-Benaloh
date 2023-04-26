@@ -1,5 +1,6 @@
 package com.company.crypto.aesImpl.mode;
 
+import com.company.crypto.aesImpl.CypherInformant;
 import com.company.crypto.aesImpl.algorithm.SymmetricalBlockEncryptionAlgorithm;
 
 import java.io.Closeable;
@@ -24,14 +25,16 @@ public abstract class SymmetricalBlockModeCypher implements Closeable {
         this.algorithm = algorithm;
         this.threadNumber = threadNumber;
 
-        this.executorService = (threadNumber > 0) ? Executors.newScheduledThreadPool(threadNumber) : null;
+        this.executorService = (threadNumber > 0)
+                ? Executors.newScheduledThreadPool(threadNumber)
+                : null;
 
         this.bufferSize = algorithm.getOpenTextBlockSizeInBytes();
         this.buffer = new byte[bufferSize];
     }
 
-    public abstract void encode(File inputFile, File outputFile) throws IOException;
-    public abstract void decode(File inputFile, File outputFile) throws IOException;
+    public abstract void encode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException;
+    public abstract void decode(File inputFile, File outputFile, CypherInformant cypherInformant) throws IOException;
 
     protected void callTasksAndWait(List<Callable<Void>> callableList) {
         List<Future<Void>> futureList = new ArrayList<>();
