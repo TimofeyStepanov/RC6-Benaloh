@@ -15,6 +15,8 @@ import java.util.concurrent.*;
  * Its class is used by Cypher. Makes encode and decode
  */
 public abstract class SymmetricalBlockModeCypher implements Closeable {
+    protected static final int MIN_NUMBER_OF_THREADS = 2;
+
     protected final int threadNumber;
     protected final ExecutorService executorService;
     protected final SymmetricalBlockEncryptionAlgorithm algorithm;

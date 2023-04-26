@@ -8,7 +8,6 @@ import lombok.Builder;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -17,7 +16,7 @@ public class CBCCypher extends SymmetricalBlockModeCypher {
     private final byte[] initialVector;
 
     public CBCCypher(SymmetricalBlockEncryptionAlgorithm algorithm, byte[] initialVector) {
-        super(algorithm, Runtime.getRuntime().availableProcessors()-1);
+        super(algorithm, Math.max(Runtime.getRuntime().availableProcessors() / 2, MIN_NUMBER_OF_THREADS));
         this.initialVector = initialVector;
     }
 
@@ -51,8 +50,9 @@ public class CBCCypher extends SymmetricalBlockModeCypher {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
+        int threadsForDecode = threadNumber / 2;
         List<Callable<Void>> callableList = new ArrayList<>();
-        if (blockNumber < threadNumber || threadNumber < 2) {
+        if (blockNumber < threadsForDecode || threadsForDecode < 2) {
             Callable<Void> decodeCallable = CBCDecodeFile.builder()
                     .filePositionToStart(0)
                     .byteToEncode(fileLengthInByte)
@@ -66,10 +66,10 @@ public class CBCCypher extends SymmetricalBlockModeCypher {
             callableList.add(decodeCallable);
         } else {
             long endOfPreviousBlock = 0;
-            for (int i = 0; i < threadNumber-1; i++) {
+            for (int i = 0; i < threadsForDecode - 1; i++) {
                 Callable<Void> decodeCallable = CBCDecodeFile.builder()
                         .filePositionToStart(endOfPreviousBlock)
-                        .byteToEncode(blockNumber / threadNumber * bufferSize)
+                        .byteToEncode(blockNumber / threadsForDecode * bufferSize)
                         .bufferSize(bufferSize)
                         .initialVector(initialVector)
                         .cypherInformant(cypherInformant)
@@ -79,7 +79,7 @@ public class CBCCypher extends SymmetricalBlockModeCypher {
                         .build();
                 callableList.add(decodeCallable);
 
-                endOfPreviousBlock += blockNumber/threadNumber * bufferSize;
+                endOfPreviousBlock += blockNumber / threadsForDecode * bufferSize;
             }
 
             Callable<Void> decodeCallable = CBCDecodeFile.builder()

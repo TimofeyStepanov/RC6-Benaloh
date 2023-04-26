@@ -17,7 +17,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
     protected int delta;
 
     public CTRCypher(SymmetricalBlockEncryptionAlgorithm algorithm, int startDigit) {
-        super(algorithm, Runtime.getRuntime().availableProcessors() - 1);
+        super(algorithm, Math.max(Runtime.getRuntime().availableProcessors() / 2, MIN_NUMBER_OF_THREADS));
 
         this.startDigit = startDigit;
         this.delta = 1;
@@ -28,8 +28,9 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
+        int threadsForEncode = threadNumber / 2;
         List<Callable<Void>> callableList = new ArrayList<>();
-        if (blockNumber < threadNumber || threadNumber < 2) {
+        if (blockNumber < threadsForEncode || threadsForEncode < 2) {
             Callable<Void> encodeCallable = CTREncodeFile.builder()
                     .filePositionToStart(0)
                     .byteToEncode(fileLengthInByte)
@@ -44,7 +45,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
             callableList.add(encodeCallable);
         } else {
             long endOfPreviousBlock = 0;
-            for (int i = 0; i < threadNumber - 1; i++) {
+            for (int i = 0; i < threadsForEncode - 1; i++) {
                 Callable<Void> encodeCallable = CTREncodeFile.builder()
                         .filePositionToStart(endOfPreviousBlock)
                         .byteToEncode(blockNumber / threadNumber * bufferSize)
@@ -82,8 +83,9 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
         long fileLengthInByte = inputFile.length();
         long blockNumber = fileLengthInByte / bufferSize;
 
+        int threadsForDecode = threadNumber / 2;
         List<Callable<Void>> callableList = new ArrayList<>();
-        if (blockNumber < threadNumber || threadNumber < 2) {
+        if (blockNumber < threadsForDecode || threadsForDecode < 2) {
             Callable<Void> decodeCallable = CTRDecodeFile.builder()
                     .filePositionToStart(0)
                     .byteToEncode(fileLengthInByte)
@@ -98,10 +100,10 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
             callableList.add(decodeCallable);
         } else {
             long endOfPreviousBlock = 0;
-            for (int i = 0; i < threadNumber - 1; i++) {
+            for (int i = 0; i < threadsForDecode - 1; i++) {
                 Callable<Void> decodeCallable = CTRDecodeFile.builder()
                         .filePositionToStart(endOfPreviousBlock)
-                        .byteToEncode(blockNumber / threadNumber * bufferSize)
+                        .byteToEncode(blockNumber / threadsForDecode * bufferSize)
                         .bufferSize(bufferSize)
                         .delta(delta)
                         .cypherInformant(cypherInformant)
@@ -112,7 +114,7 @@ public class CTRCypher extends SymmetricalBlockModeCypher {
                         .build();
                 callableList.add(decodeCallable);
 
-                endOfPreviousBlock += blockNumber / threadNumber * bufferSize;
+                endOfPreviousBlock += blockNumber / threadsForDecode * bufferSize;
             }
 
             Callable<Void> decodeCallable = CTRDecodeFile.builder()

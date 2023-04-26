@@ -13,7 +13,7 @@ public class RDPlusHCypher extends SymmetricalBlockModeCypher {
     private final byte[] hash;
 
     public RDPlusHCypher(SymmetricalBlockEncryptionAlgorithm algorithm, byte[] initialVector, byte[] hash) {
-        super(algorithm, Runtime.getRuntime().availableProcessors()-1);
+        super(algorithm,0);
 
         this.delta = initialVector[initialVector.length-1];
         this.startDigit = translateArrayIntoLong(initialVector);
