@@ -6,7 +6,6 @@ import com.company.crypto.benaloh.algebra.prime.PrimeChecker;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerFabric;
 import com.company.crypto.benaloh.algebra.prime.PrimeCheckerType;
 import com.company.crypto.benaloh.algorithm.Benaloh;
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -15,7 +14,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-@Slf4j
+
 public final class BenalohImpl extends Benaloh {
     private static final int MIN_LENGTH_OF_PRIME_DIGIT = 64;
 
@@ -42,7 +41,7 @@ public final class BenalohImpl extends Benaloh {
         }
 
         BigInteger message = translateInputByteArrayToBigInteger(array);
-        log.info("message to encode:" + message);
+        //log.info("message to encode:" + message);
 
         BigInteger r = openKey.getR();
         if (message.compareTo(r) >= 0) {
@@ -54,14 +53,14 @@ public final class BenalohImpl extends Benaloh {
         do {
             u = getRandomPositiveDigit(n);
         } while (!u.gcd(n).equals(BigInteger.ONE));
-        log.info("generate u:" + u);
+        //log.info("generate u:" + u);
 
         BigInteger y = openKey.getY();
 
         BigInteger yInDegree = y.modPow(message, n);
         BigInteger uInDegree = u.modPow(r, n);
         BigInteger encodedMessage = yInDegree.multiply(uInDegree).mod(n);
-        log.info("message encoded:" + encodedMessage);
+        //log.info("message encoded:" + encodedMessage);
 
         byte[] arrayOfEncodedMessage = encodedMessage.toByteArray();
         reverseArray(arrayOfEncodedMessage);
@@ -111,14 +110,14 @@ public final class BenalohImpl extends Benaloh {
         BigInteger r = openKey.getR();
 
         BigInteger encodedMessage = translateInputByteArrayToBigInteger(array);
-        log.info("message to decode:" + encodedMessage);
+        //log.info("message to decode:" + encodedMessage);
         if (encodedMessage.compareTo(n) >= 0) {
             throw new IllegalArgumentException("Wrong message to decode");
         }
 
         BigInteger a = encodedMessage.modPow(f.divide(r), n);
         BigInteger decodedMessage = discreteLogarithmService.getDiscreteLogarithm(privateKey.getX(), a, n);
-        log.info("decoded message:" + decodedMessage);
+        //log.info("decoded message:" + decodedMessage);
 
         checkDecodedMessage(decodedMessage, a);
 
@@ -166,7 +165,7 @@ public final class BenalohImpl extends Benaloh {
                 p = generateRandomPrimeDigit(randomLength);
                 pMinusOne = p.subtract(BigInteger.ONE);
             } while (!pMinusOne.mod(r).equals(BigInteger.ZERO) || !r.gcd(pMinusOne.divide(r)).equals(BigInteger.ONE));
-            log.info("Generate p:" + p);
+            //log.info("Generate p:" + p);
 
             BigInteger q;
             BigInteger qMinusOne;
@@ -175,7 +174,7 @@ public final class BenalohImpl extends Benaloh {
                 q = generateRandomPrimeDigit(randomLength);
                 qMinusOne = q.subtract(BigInteger.ONE);
             } while (!r.gcd(qMinusOne).equals(BigInteger.ONE) || p.equals(q));
-            log.info("Generate q:" + q);
+            //log.info("Generate q:" + q);
 
             BigInteger n = p.multiply(q);
             BigInteger f = pMinusOne.multiply(qMinusOne);
@@ -184,7 +183,7 @@ public final class BenalohImpl extends Benaloh {
             do {
                 y = BenalohImpl.this.getRandomPositiveDigit(n);
             } while (!y.gcd(n).equals(BigInteger.ONE) || y.modPow(yDegree, n).equals(BigInteger.ONE));
-            log.info("Generate y:" + y);
+            //log.info("Generate y:" + y);
 
             BigInteger x = y.modPow(yDegree, n);
 

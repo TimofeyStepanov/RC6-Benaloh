@@ -27,6 +27,5 @@ class ShanksAlgorithmTest {
         answer = s2.getDiscreteLogarithm(BigInteger.valueOf(2), BigInteger.valueOf(28), BigInteger.valueOf(37));
         System.out.println(answer);
         assert (answer.equals(BigInteger.valueOf(34)));
-
     }
 }

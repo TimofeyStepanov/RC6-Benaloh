@@ -36,7 +36,7 @@ class CTRCypherTest {
             hash[i] = (byte) ThreadLocalRandom.current().nextInt();
         }
 
-        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6, 0)) {
+        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6, null, 0)) {
             File one = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\1.txt");
             File two = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\2.txt");
             File three = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\3.txt");
@@ -83,7 +83,7 @@ class CTRCypherTest {
             hash[i] = (byte) ThreadLocalRandom.current().nextInt();
         }
 
-        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6, 2)) {
+        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6,null, 2)) {
             File one = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\1.jpg");
             File two = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\2.jpg");
             File three = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\3.jpg");
@@ -130,7 +130,7 @@ class CTRCypherTest {
             hash[i] = (byte) ThreadLocalRandom.current().nextInt();
         }
 
-        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6, 4)) {
+        try (SymmetricBlockCypher cipher = SymmetricBlockCypher.build(cipherKey, SymmetricalBlockMode.CTR, rc6, null, 4)) {
             File one = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\1.mp4");
             File two = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\2.mp4");
             File three = new File("C:\\Users\\Timofey.LAPTOP-KQGJSA46\\Desktop\\des\\3.mp4");

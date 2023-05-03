@@ -7,13 +7,13 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+
 public class BabyStepGiantStep implements DiscreteLogarithmService {
     @Override
     public BigInteger getDiscreteLogarithm(BigInteger base, BigInteger arg, BigInteger modulo) {
-        log.info("base:" + base);
-        log.info("arg:" + arg);
-        log.info("modulo:" + modulo);
+        //log.info("base:" + base);
+        //log.info("arg:" + arg);
+        //log.info("modulo:" + modulo);
 
         BigInteger maxIterationNumber = modulo.sqrt().add(BigInteger.ONE);
         BigInteger aInDegreeN = BigInteger.ONE;
@@ -39,9 +39,9 @@ public class BabyStepGiantStep implements DiscreteLogarithmService {
                 BigInteger value = values.get(current);
                 BigInteger answer = value.multiply(maxIterationNumber).subtract(i);
                 if (answer.compareTo(modulo) < 0) {
-                    log.info("another answer:" + answer);
+                    //log.info("another answer:" + answer);
                     if (answer.equals(BigInteger.valueOf(10))) {
-                        log.info("answer:");
+                        //log.info("answer:");
                         return answer;
                     }
                     //log.info("answer:" + answer);

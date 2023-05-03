@@ -6,7 +6,7 @@ import com.company.crypto.aesImpl.mode.SymmetricalBlockModeCypher;
 
 public abstract class SymmetricalBlockCypherFabric {
     public enum ArgPosition {
-        IV(0), INDEX_FOR_CTR(0), HASH(1);
+        IV(0), INDEX_FOR_CTR(1), HASH(2);
         public final int position;
 
         ArgPosition(int position) {
