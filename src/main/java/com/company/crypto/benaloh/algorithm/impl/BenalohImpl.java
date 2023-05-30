@@ -32,6 +32,14 @@ public final class BenalohImpl extends Benaloh {
         this.discreteLogarithmService = new SimpleDiscreteLogarithm(openKey.getR());
     }
 
+    public BenalohImpl(OpenKey openKey, PrivateKey privateKey, PrimeCheckerType type, double precision, int rLength) {
+        this.openKeyGenerator = new OpenKeyGenerator(type, precision, rLength);
+        this.discreteLogarithmService = new SimpleDiscreteLogarithm(openKey.getR());
+
+        this.openKey = openKey;
+        this.privateKey = privateKey;
+    }
+
     @Override
     public byte[] encode(byte[] array, OpenKey openKey) {
         Objects.requireNonNull(array);

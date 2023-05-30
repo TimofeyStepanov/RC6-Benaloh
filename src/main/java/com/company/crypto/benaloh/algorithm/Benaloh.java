@@ -1,22 +1,25 @@
 package com.company.crypto.benaloh.algorithm;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 
 import java.math.BigInteger;
 
 public abstract class Benaloh {
     @Getter
-    @RequiredArgsConstructor
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OpenKey {
-        private final BigInteger y;
-        private final BigInteger r;
-        private final BigInteger n;
+        private BigInteger y;
+        private BigInteger r;
+        private BigInteger n;
     }
 
     @Getter
     @RequiredArgsConstructor
-    protected static class PrivateKey {
+    public static class PrivateKey {
         private final BigInteger f;
         private final BigInteger x;
     }
